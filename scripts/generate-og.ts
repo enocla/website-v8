@@ -10,9 +10,9 @@ import { fileURLToPath } from "node:url";
 import { Resvg } from "@resvg/resvg-js";
 import React from "react";
 import satori, { type Font } from "satori";
-import manifest from "../src/content/manifest.json" with { type: "json" };
 import sharp from "sharp";
 import { decompress } from "wawoff2";
+import manifest from "../src/content/manifest.json" with { type: "json" };
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 

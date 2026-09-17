@@ -25,7 +25,10 @@ function entriesFromManifest(manifest: Manifest) {
 	return [...pages, ...posts];
 }
 
-export function validateManifest(manifest: Manifest, { ogFiles }: { ogFiles?: ReadonlySet<string> } = {}) {
+export function validateManifest(
+	manifest: Manifest,
+	{ ogFiles }: { ogFiles?: ReadonlySet<string> } = {},
+) {
 	const errors = [];
 	const entries = entriesFromManifest(manifest);
 	const paths = new Set();
@@ -70,7 +73,7 @@ export function validateManifest(manifest: Manifest, { ogFiles }: { ogFiles?: Re
 }
 
 export function validateContent({ checkAssets = true } = {}) {
-	let ogFiles;
+	let ogFiles: ReadonlySet<string> | undefined;
 	if (checkAssets) {
 		if (!fs.existsSync(ogDirectory))
 			throw new Error("public/og does not exist; run pnpm generate:og first");
