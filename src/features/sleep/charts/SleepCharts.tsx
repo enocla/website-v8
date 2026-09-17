@@ -108,19 +108,19 @@ function countText(point: LoosePoint): string | null {
 
 function Shell({
 	definition,
-	height,
+	aspectRatio,
 	ariaLabel,
 }: {
 	// biome-ignore lint/suspicious/noExplicitAny: definition type varies per chart
 	definition: any;
-	height: number;
+	aspectRatio: number;
 	ariaLabel: string;
 }) {
 	return (
 		<div className="sleep-chart-full">
 			<Chart
 				definition={definition}
-				height={height}
+				aspectRatio={aspectRatio}
 				initialWidth={640}
 				ariaLabel={ariaLabel}
 			/>
@@ -171,7 +171,7 @@ export function SleepDurationHist() {
 	return (
 		<Shell
 			definition={definition}
-			height={300}
+			aspectRatio={2}
 			ariaLabel="Histogram of nightly sleep duration with fitted normal curve"
 		/>
 	);
@@ -238,7 +238,7 @@ export function BedtimeLongitudinal() {
 	return (
 		<Shell
 			definition={definition}
-			height={340}
+			aspectRatio={16 / 9}
 			ariaLabel="Scatterplot of raw bedtime against date, showing midday travel clusters"
 		/>
 	);
@@ -283,7 +283,7 @@ export function BedtimeAdjHist() {
 	return (
 		<Shell
 			definition={definition}
-			height={300}
+			aspectRatio={2}
 			ariaLabel="Histogram of travel-adjusted bedtimes, a single Gaussian curve"
 		/>
 	);
@@ -357,7 +357,9 @@ function Scatter({
 			}),
 		[points, yLabel, formatY, yTicks],
 	);
-	return <Shell definition={definition} height={480} ariaLabel={ariaLabel} />;
+	return (
+		<Shell definition={definition} aspectRatio={1} ariaLabel={ariaLabel} />
+	);
 }
 
 export function BedtimeVsAsleep() {
@@ -481,7 +483,7 @@ export function WeekdayBars() {
 	return (
 		<Shell
 			definition={definition}
-			height={300}
+			aspectRatio={2}
 			ariaLabel="Bar chart of mean sleep by weekday with weekend catch-up"
 		/>
 	);
@@ -544,7 +546,7 @@ export function AcfBars() {
 	return (
 		<Shell
 			definition={definition}
-			height={300}
+			aspectRatio={2}
 			ariaLabel="Bar chart of sleep autocorrelation by lag with weekly peaks"
 		/>
 	);

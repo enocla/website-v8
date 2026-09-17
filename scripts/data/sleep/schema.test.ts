@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import fs from "node:fs";
-import { validateSleepData } from "./schema.mjs";
+import { validateSleepData } from "./schema.ts";
 
 test("generated sleep data has the checked-in schema contract", () => {
 	const data = JSON.parse(fs.readFileSync("src/features/sleep/data/sleep.json", "utf8"));

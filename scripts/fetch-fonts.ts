@@ -1,7 +1,7 @@
 // Regenerate the derived font files actually used by the repo:
 //
 // - assets/fonts/Sentient-{400,500,700}.subset.woff2 (legacy OG inputs,
-//   retained but no longer consumed; scripts/generate-og.mjs now reads the
+//   retained but no longer consumed; scripts/generate-og.ts now reads the
 //   Libertinus files below)
 // - public/fonts/Sentient-variable.subset.woff2 (legacy site @font-face,
 //   retained but no longer referenced by src/styles.css)
@@ -39,7 +39,7 @@
 // User-Agent returns full TTF URLs. Full Supreme TTFs are fetched from the
 // Fontshare CDN (discoverable via https://api.fontshare.com/v2/fonts).
 // Everything is subsetted, and only the derived files are kept. Run with:
-// node scripts/fetch-fonts.mjs
+// node scripts/fetch-fonts.ts
 
 import fs from "node:fs";
 import os from "node:os";
@@ -76,7 +76,7 @@ const LIBERTINUS_SOURCES = {
 
 // Broad coverage for titles and site copy: Basic Latin, Latin-1, Latin
 // Extended A/B, general punctuation, currency, arrows, misc symbols (✦).
-function corpusFor(ranges) {
+function corpusFor(ranges: readonly (readonly [number, number])[]) {
 	let s = "";
 	for (const [from, to] of ranges) {
 		for (let cp = from; cp <= to; cp++) {
@@ -99,7 +99,7 @@ const corpus = corpusFor([
 
 const tmp = await fs.promises.mkdtemp(path.join(os.tmpdir(), "fonts-"));
 
-async function fetchSource(name) {
+async function fetchSource(name: keyof typeof SOURCES) {
 	const res = await fetch(SOURCES[name]);
 	if (!res.ok) throw new Error(`download failed for ${name}: ${res.status}`);
 	const dest = path.join(tmp, name);
@@ -107,7 +107,7 @@ async function fetchSource(name) {
 	return dest;
 }
 
-async function subsetToDest(src, dest) {
+async function subsetToDest(src: string, dest: string) {
 	const ttf = await fs.promises.readFile(src);
 	const subset = await subsetFont(ttf, corpus, { targetFormat: "woff2" });
 	await fs.promises.writeFile(dest, Buffer.from(subset));
@@ -116,7 +116,7 @@ async function subsetToDest(src, dest) {
 	);
 }
 
-for (const weight of [400, 500, 700]) {
+for (const weight of [400, 500, 700] as const) {
 	const src = await fetchSource(`Sentient-${weight}.ttf`);
 	await subsetToDest(
 		src,

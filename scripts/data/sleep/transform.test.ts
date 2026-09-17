@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dateTimeParts, durationHours, gate, isEasternDaylightTime } from "./transform.mjs";
+import { dateTimeParts, durationHours, gate, isEasternDaylightTime } from "./transform.ts";
 
 test("time parsing rejects malformed durations and dates", () => {
 	assert.equal(durationHours(""), null);

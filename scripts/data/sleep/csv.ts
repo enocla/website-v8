@@ -1,4 +1,4 @@
-export function parseCSV(text) {
+export function parseCSV(text: string): string[][] {
 	const rows = [];
 	let field = "";
 	let row = [];

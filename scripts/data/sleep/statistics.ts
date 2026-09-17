@@ -1,16 +1,16 @@
-export const mean = (values) => {
+export const mean = (values: readonly number[]) => {
 	if (values.length === 0) throw new Error("mean requires at least one value");
 	return values.reduce((sum, value) => sum + value, 0) / values.length;
 };
 
-export const popStd = (values) => {
+export const popStd = (values: readonly number[]) => {
 	const average = mean(values);
 	return Math.sqrt(mean(values.map((value) => (value - average) ** 2)));
 };
 
-export const sorted = (values) => [...values].sort((a, b) => a - b);
+export const sorted = (values: readonly number[]) => [...values].sort((a, b) => a - b);
 
-export const median = (values) => {
+export const median = (values: readonly number[]) => {
 	const ordered = sorted(values);
 	const middle = ordered.length / 2;
 	return ordered.length % 2
@@ -18,12 +18,12 @@ export const median = (values) => {
 		: (ordered[middle - 1] + ordered[middle]) / 2;
 };
 
-export const quantileFloor = (values, probability) => {
+export const quantileFloor = (values: readonly number[], probability: number) => {
 	const ordered = sorted(values);
 	return ordered[Math.min(ordered.length - 1, Math.floor(probability * ordered.length))];
 };
 
-function betacf(a, b, x) {
+function betacf(a: number, b: number, x: number) {
 	const MAX_ITERATIONS = 200;
 	const EPSILON = 3e-12;
 	const FLOATING_POINT_MIN = 1e-300;
@@ -57,7 +57,7 @@ function betacf(a, b, x) {
 	return h;
 }
 
-function logGamma(value) {
+function logGamma(value: number): number {
 	const coefficients = [
 		0.9999999999998099,
 		676.5203681218851,
@@ -77,7 +77,7 @@ function logGamma(value) {
 	return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
 }
 
-function betai(a, b, x) {
+function betai(a: number, b: number, x: number) {
 	if (x <= 0) return 0;
 	if (x >= 1) return 1;
 	const beta = Math.exp(
@@ -87,16 +87,16 @@ function betai(a, b, x) {
 	return 1 - (beta * betacf(b, a, 1 - x)) / b;
 }
 
-function tPvalue(t, degreesOfFreedom) {
+function tPvalue(t: number, degreesOfFreedom: number) {
 	return betai(degreesOfFreedom / 2, 0.5, degreesOfFreedom / (degreesOfFreedom + t * t));
 }
 
-export function fPvalue(f, numeratorDf, denominatorDf) {
+export function fPvalue(f: number, numeratorDf: number, denominatorDf: number) {
 	const x = (numeratorDf * f) / (numeratorDf * f + denominatorDf);
 	return 1 - betai(numeratorDf / 2, denominatorDf / 2, x);
 }
 
-export function ols(xs, ys) {
+export function ols(xs: readonly number[], ys: readonly number[]) {
 	if (xs.length !== ys.length || xs.length < 3) {
 		throw new Error("ols requires equal arrays with at least three values");
 	}
@@ -118,7 +118,7 @@ export function ols(xs, ys) {
 	return { n, slope, intercept, r, p: tPvalue(Math.abs(t), n - 2) };
 }
 
-export function acf(series, maxLag) {
+export function acf(series: readonly number[], maxLag: number) {
 	const average = mean(series);
 	const denominator = series.reduce((sum, value) => sum + (value - average) ** 2, 0);
 	const values = [];

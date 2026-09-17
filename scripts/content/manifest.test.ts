@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import manifest from "../../src/content/manifest.json" with { type: "json" };
-import { validateManifest } from "./validate.mjs";
+import { validateManifest } from "./validate.ts";
 
 test("content manifest has unique canonical post paths and OG owners", () => {
 	const entries = validateManifest(manifest, {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { acf, median, ols, popStd, quantileFloor } from "./statistics.mjs";
+import { acf, median, ols, popStd, quantileFloor } from "./statistics.ts";
 
 test("statistics handle small deterministic samples", () => {
 	assert.equal(median([1, 4, 2]), 2);

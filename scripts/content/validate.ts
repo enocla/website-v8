@@ -1,29 +1,31 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import manifest from "../../src/content/manifest.json" with { type: "json" };
+
+type Manifest = typeof manifest;
 
 const root = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
 	"../..",
 );
-const manifestPath = path.join(root, "src/content/manifest.json");
 const ogDirectory = path.join(root, "public/og");
 
-function entriesFromManifest(manifest) {
+function entriesFromManifest(manifest: Manifest) {
 	const pages = Object.values(manifest.pages).map((page) => ({
 		...page,
-		kind: "page",
+		kind: "page" as const,
 	}));
 	const posts = manifest.posts.map((post) => ({
 		...post,
 		path: post.canonicalPath,
 		title: post.ogTitle,
-		kind: "post",
+		kind: "post" as const,
 	}));
 	return [...pages, ...posts];
 }
 
-export function validateManifest(manifest, { ogFiles } = {}) {
+export function validateManifest(manifest: Manifest, { ogFiles }: { ogFiles?: ReadonlySet<string> } = {}) {
 	const errors = [];
 	const entries = entriesFromManifest(manifest);
 	const paths = new Set();
@@ -68,7 +70,6 @@ export function validateManifest(manifest, { ogFiles } = {}) {
 }
 
 export function validateContent({ checkAssets = true } = {}) {
-	const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 	let ogFiles;
 	if (checkAssets) {
 		if (!fs.existsSync(ogDirectory))

@@ -2,7 +2,7 @@ import { notFound } from "@tanstack/react-router";
 import { lazy, Suspense, useMemo } from "react";
 import { loadPostBody } from "../content/loadPost";
 import type { PostEntry } from "../content/types";
-import Giscus from "../integrations/comments/Giscus";
+// import Giscus from "../integrations/comments/Giscus";
 import { formatPublishedAt } from "../lib/date";
 
 export default function PostPage({ post }: { post: PostEntry }) {
@@ -26,12 +26,12 @@ export default function PostPage({ post }: { post: PostEntry }) {
 			<div className="py-8">
 				<hr className="border-px border-border" />
 			</div>
-			<article className="pb-16 prose">
+			<article className="prose">
 				<Suspense fallback={<p>Loading article…</p>}>
 					<Body />
 				</Suspense>
 			</article>
-			<Giscus slug={post.slug} />
+			{/* <Giscus slug={post.slug} /> */}
 		</>
 	);
 }

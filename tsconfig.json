@@ -1,5 +1,6 @@
 {
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts", "vite.config.ts"],
+  "exclude": ["node_modules", ".output", ".vercel", ".tanstack"],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

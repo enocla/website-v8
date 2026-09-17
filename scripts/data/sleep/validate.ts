@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { validateSleepData } from "./schema.mjs";
+import { validateSleepData } from "./schema.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const artifactPath = path.join(root, "src/features/sleep/data/sleep.json");

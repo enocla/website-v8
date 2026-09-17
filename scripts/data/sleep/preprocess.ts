@@ -5,8 +5,8 @@
 //   - data/sleep/derived/sleep-clean.csv (private debug export)
 //   - src/features/sleep/data/sleep.json (compact chart series + statistics)
 //
-// Run: node scripts/data/sleep/preprocess.mjs
-// The root-level scripts/preprocess-sleep.mjs remains a compatibility wrapper.
+// Run: node scripts/data/sleep/preprocess.ts
+// The root-level scripts/preprocess-sleep.ts remains a compatibility wrapper.
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -17,9 +17,9 @@ import {
 	gate,
 	isEasternDaylightTime as isEDT,
 	weekdayUTC,
-} from "./transform.mjs";
-import { parseCSV } from "./csv.mjs";
-import { acf, fPvalue, mean, median, ols, popStd, quantileFloor } from "./statistics.mjs";
+} from "./transform.ts";
+import { parseCSV } from "./csv.ts";
+import { acf, fPvalue, mean, median, ols, popStd, quantileFloor } from "./statistics.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const inputPath = path.join(root, "data/sleep/raw/sleep.csv");
@@ -33,14 +33,17 @@ const C = Object.fromEntries(header.map((h, i) => [h, i]));
 
 // Statistics are kept in a pure, fixture-testable module.
 // --------------------------------------------------------------- row model --
-const noon = (wallH) => (((wallH - 12) % 24) + 24) % 24;
-const dayNum = (date) => new Date(`${date}T12:00:00Z`).getTime() / 864e5;
+const noon = (wallH: number) => (((wallH - 12) % 24) + 24) % 24;
+const dayNum = (date: string) => new Date(`${date}T12:00:00Z`).getTime() / 864e5;
 
-const sessions = data.map((r) => {
+const parsedSessions = data.map((r, index) => {
 	const b = dtParts(r[C.bedtime]);
 	const w = dtParts(r[C.waketime]);
 	const asleep = durH(r[C.asleep]);
 	const inBed = durH(r[C.inBed]);
+	if (!b || !w || asleep === null || inBed === null || !Number.isFinite(asleep) || !Number.isFinite(inBed)) {
+		throw new Error(`Invalid bedtime, waketime or duration in CSV row ${index + 2}`);
+	}
 	const span = (dayNum(w.date) - dayNum(b.date)) * 24 + (w.h - b.h);
 	return {
 		bedDate: b.date,
@@ -72,38 +75,34 @@ const sessions = data.map((r) => {
 // back onto a noon-to-noon local clock. Early-evening (5-8pm) and morning
 // bedtimes are ambiguous at home too, so they are left as observed.
 const TRAVEL_LO = 8, TRAVEL_HI = 17;
-for (const s of sessions) {
-	s.travel = s.wallBed >= TRAVEL_LO && s.wallBed < TRAVEL_HI;
-	s.bedNoonAdj = s.travel ? (s.bedNoonRaw + s.shift) % 24 : s.bedNoonRaw;
-	s.wakeNoon = s.bedNoonAdj + Math.min(s.inBed, s.span); // unwrapped; regression-safe (inBed capped at the observed bed->wake span to contain merge artifacts)
-}
+const adjustedSessions = parsedSessions.map((s) => {
+	const travel = s.wallBed >= TRAVEL_LO && s.wallBed < TRAVEL_HI;
+	const bedNoonAdj = travel ? (s.bedNoonRaw + s.shift) % 24 : s.bedNoonRaw;
+	// Unwrapped and capped at the observed span to contain merge artifacts.
+	const wakeNoon = bedNoonAdj + Math.min(s.inBed, s.span);
+	return { ...s, travel, bedNoonAdj, wakeNoon };
+});
 
 // Efficiency: the export column is corrupt on some rows (2650%, 17.1% where
 // asleep/inBed = 77.9%, ...). Recompute from first principles when the device
 // value is missing, out of range, or disagrees by > 1 point; clamp [0, 100].
 let effFixed = 0;
-for (const s of sessions) {
+const sessions = adjustedSessions.map((s) => {
 	const computed = s.inBed > 0 ? Math.min(100, Math.max(0, (100 * s.asleep) / s.inBed)) : null;
-	s.effComputed = computed;
-	if (
-		s.effRaw === null || !(s.effRaw >= 0) || s.effRaw > 100.5 ||
-		(computed !== null && Math.abs(s.effRaw - computed) > 1)
-	) {
-		effFixed++;
-		s.efficiency = computed;
-		s.effFlag = "recomputed";
-	} else {
-		s.efficiency = s.effRaw;
-		s.effFlag = "";
-	}
-}
+	const recompute = s.effRaw === null || !(s.effRaw >= 0) || s.effRaw > 100.5 ||
+		(computed !== null && Math.abs(s.effRaw - computed) > 1);
+	if (recompute) effFixed++;
+	return { ...s, effComputed: computed, efficiency: recompute ? computed : s.effRaw, effFlag: recompute ? "recomputed" : "", flags: "" };
+});
+type Session = (typeof sessions)[number];
 
 // Vitals plausibility gates (documented; nulled, never invented).
 const gates = { sleepBPM: [35, 110], hrv: [10, 200], sleepHRV: [10, 200], dayBPM: [50, 130], wakingBPM: [35, 130], respAvg: [8, 30] };
-const nulled = {};
+const nulled: Record<string, number> = {};
 for (const k of Object.keys(gates)) nulled[k] = 0;
 for (const s of sessions) {
-	for (const [k, [lo, hi]] of Object.entries(gates)) {
+	for (const k of Object.keys(gates) as (keyof typeof gates)[]) {
+		const [lo, hi] = gates[k];
 		const v = gate(s[k], lo, hi);
 		if (v === null && s[k] !== null) nulled[k]++;
 		s[k] = v;
@@ -122,8 +121,6 @@ for (const s of sessions) {
 // ------------------------------------------------------------------ aggregates
 const asleepAll = sessions.map((s) => s.asleep);
 const mA = mean(asleepAll), sdA = popStd(asleepAll);
-const skewB = mean(asleepAll.map((v) => ((v - mA) / sdA) ** 3));
-const kurtB = mean(asleepAll.map((v) => ((v - mA) / sdA) ** 4));
 const n = asleepAll.length;
 // Pandas/Excel-style unbiased excess kurtosis + adjusted Fisher-Pearson skew.
 const s2 = asleepAll.reduce((x, v) => x + (v - mA) ** 2, 0) / (n - 1);
@@ -135,9 +132,9 @@ const skewAdj = (Math.sqrt(n * (n - 1)) / (n - 2)) * (m3 / s2 ** 1.5);
 const bedRaw = sessions.map((s) => s.bedNoonRaw);
 const bedAdj = sessions.map((s) => s.bedNoonAdj);
 
-function hist(values, lo, hi, width) {
+function hist(values: readonly (number | null)[], lo: number, hi: number, width: number) {
 	const nb = Math.round((hi - lo) / width);
-	const counts = new Array(nb).fill(0);
+	const counts = new Array<number>(nb).fill(0);
 	for (const v of values) {
 		if (v === null || Number.isNaN(v)) continue;
 		let i = Math.floor((v - lo) / width);
@@ -167,16 +164,16 @@ const regWake = ols(bedAdj, wakeAll);
 // negative values are physically impossible, and time in bed can't exceed
 // the observed bed->wake span (the 1-minute device rounding slack in the
 // consistency flags would otherwise let two rows display just below zero).
-const overheadOf = (s) => s.inBed - s.asleep;
-const overheadBad = (s) => overheadOf(s) < 0 || s.inBed > s.span + 0.5;
+const overheadOf = (s: Session) => s.inBed - s.asleep;
+const overheadBad = (s: Session) => overheadOf(s) < 0 || s.inBed > s.span + 0.5;
 const overheadKept = sessions.filter((s) => !overheadBad(s));
 const overheadExcluded = sessions.length - overheadKept.length;
 const regOverhead = ols(
 	overheadKept.map((s) => s.bedNoonAdj),
 	overheadKept.map((s) => overheadOf(s)),
 );
-const remRows = sessions.filter((s) => s.rem !== null);
-const deepRows = sessions.filter((s) => s.deep !== null);
+const remRows = sessions.filter((s): s is Session & { rem: number } => s.rem !== null);
+const deepRows = sessions.filter((s): s is Session & { deep: number } => s.deep !== null);
 const regRem = ols(remRows.map((s) => s.bedNoonAdj), remRows.map((s) => s.rem));
 const regDeep = ols(deepRows.map((s) => s.bedNoonAdj), deepRows.map((s) => s.deep));
 const deepMeanMin = 60 * mean(deepRows.map((s) => s.deep));
@@ -187,12 +184,13 @@ const remLate = remRows.filter((s) => s.bedNoonAdj > 13 + 1 / 3).map((s) => s.re
 // Weekday of the sleep NIGHT (fromDate label, i.e. the evening the night
 // belongs to: Friday night sleep wakes Saturday). Verified against the
 // fromDate strings (0 mismatches) and reproduces Fri/Sat means exactly.
-const MON = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
-const wdOf = (s) => {
+const MON: Record<string, number> = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
+const wdOf = (s: Session) => {
 	const m = s.fromDate.match(/(\w+), (\w+) (\d+), (\d+)/);
+	if (!m || !MON[m[2]]) throw new Error(`Invalid fromDate: ${s.fromDate}`);
 	return weekdayUTC(+m[4], MON[m[2]], +m[3]);
 };
-const byWd = {};
+const byWd: Record<string, number[]> = {};
 for (const s of sessions) {
 	const wd = wdOf(s);
 	(byWd[wd] ??= []).push(s.asleep);
@@ -231,7 +229,7 @@ for (let i = 2; i < n; i++) {
 }
 
 // ------------------------------------------------------------- verification --
-const f2 = (v) => (Math.round(v * 100) / 100).toFixed(2);
+const f2 = (v: number) => (Math.round(v * 100) / 100).toFixed(2);
 console.log("sessions:", n);
 console.log(`asleep  mean=${f2(mA)} (7.08)  med=${f2(median(asleepAll))} (7.09)  skew=${skewAdj.toFixed(2)} (0.01)  kurt=${kurtExcess.toFixed(2)} (2.92)`);
 console.log(`bedRaw  std=${popStd(bedRaw).toFixed(2)} (5.42)`);
@@ -250,7 +248,7 @@ console.log(`streaks: n=${nn} P(3rd short)=${(100 * nShort3 / nn).toFixed(1)}% (
 console.log(`cleaning: efficiency recomputed=${effFixed}, vitals nulled=${JSON.stringify(nulled)}`);
 console.log(`flags: ${(sessions.filter((s) => s.flags).length)} rows flagged`);
 
-function clock(noonH) {
+function clock(noonH: number) {
 	let mins = Math.round(noonH * 60) % 1440;
 	let h24 = (12 + Math.floor(mins / 60)) % 24;
 	const mm = mins % 60;
@@ -264,7 +262,7 @@ function clock(noonH) {
 // sleep-clean.csv
 const cleanHeader = ["date", "weekday", "bedtime_wall", "waketime_wall", "bed_noon_raw_h", "travel_shift_h", "bed_noon_adj_h", "wake_noon_h", "inBed_h", "asleep_h", "overhead_h", "rem_h", "deep_h", "efficiency_device", "efficiency_clean", "sleepBPM", "hrv", "sleepHRV", "dayBPM", "wakingBPM", "respAvg", "flags"];
 const cleanLines = [cleanHeader.join(",")];
-const r2 = (v) => (v === null || v === undefined || Number.isNaN(v) ? "" : Math.round(v * 100) / 100);
+const r2 = (v: number | null | undefined) => (v === null || v === undefined || Number.isNaN(v) ? "" : Math.round(v * 100) / 100);
 for (let i = 0; i < sessions.length; i++) {
 	const s = sessions[i];
 	const r = data[i];
@@ -281,12 +279,12 @@ fs.mkdirSync(path.join(root, "data/sleep/derived"), { recursive: true });
 fs.writeFileSync(path.join(root, "data/sleep/derived/sleep-clean.csv"), cleanLines.join("\n") + "\n");
 
 // src/features/sleep/data/sleep.json — chart-ready series only (sessions stay in the private CSV).
-const r3 = (v) => Math.round(v * 1000) / 1000;
+const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const sessionIndex = new Map(sessions.map((s, i) => [s, i]));
 const out = {
 	schemaVersion: 1,
 	meta: {
-		n, sourceHash, generatedBy: "scripts/data/sleep/preprocess.mjs",
+		n, sourceHash, generatedBy: "scripts/data/sleep/preprocess.ts",
 		travelRule: `wall-clock bedtime in [${TRAVEL_LO}:00, ${TRAVEL_HI}:00) Eastern shifted +12h (EDT) / +13h (EST) onto a noon-to-noon clock`,
 		efficiencyRecomputed: effFixed,
 		vitalsNulled: nulled,
