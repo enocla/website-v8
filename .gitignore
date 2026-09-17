@@ -1,5 +1,6 @@
 node_modules
 public/og/
+public/sleep-clean.csv
 .DS_Store
 dist
 dist-ssr
@@ -12,3 +13,9 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
+
+# Personal source data and analysis/debug exports are never web assets.
+/data/sleep/raw/
+/data/sleep/derived/
+/sleep.csv
+/sleep-clean.csv

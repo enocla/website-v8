@@ -1,3 +1,4 @@
+import mdx from "@mdx-js/rollup";
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
@@ -10,6 +11,7 @@ const config = defineConfig({
 	resolve: { tsconfigPaths: true },
 	plugins: [
 		devtools(),
+		mdx({ providerImportSource: "@mdx-js/react" }),
 		nitro(),
 		tailwindcss(),
 		tanstackStart(),

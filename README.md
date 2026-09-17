@@ -1,213 +1,71 @@
-Welcome to your new TanStack Start app!
+# enochlau.com
 
-# Getting Started
+This is the source for [enochlau.com](https://enochlau.com), a small TanStack Start site with a paper-like shell, local content, and one interactive sleep-data article.
 
-To run this application:
+## Development
+
+Requirements: Node 24 and pnpm 11.
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-# Building For Production
+The production checks are also available as individual commands:
 
-To build this application for production:
+```bash
+pnpm check          # Biome formatting/lint checks
+pnpm typecheck      # TypeScript, no emit
+pnpm test           # Node tests for content and sleep contracts
+pnpm validate:data  # versioned generated sleep-data schema
+pnpm validate:content
+pnpm build          # generate OG images, validate, and build Nitro output
+pnpm run ci        # all of the above
+```
+
+## Architecture
+
+- `src/routes/` contains file-based URL declarations, loaders, and head composition only.
+- `src/pages/` contains page implementations.
+- `src/layout/` owns the paper shell, footer, and the reusable `NavLink` active-state component.
+- `src/content/manifest.json` is the metadata source of truth for pages and posts. `src/content/manifest.ts` provides typed lookups.
+- `src/content/posts/` owns each body. Prose uses MDX; interactive stories use TSX. Bodies are lazy-loaded from the post route, while the writing index loads metadata only.
+- `src/features/sleep/` owns sleep charts, the browser-facing generated artifact, and its typed data model.
+- `src/integrations/` owns music, Giscus, and Umami boundaries and identifiers.
+- `src/lib/seo.ts` creates canonical, description, Open Graph, and Twitter head metadata.
+
+The public writing URL is `/writing/<slug>`. `/content/<slug>` remains as a compatibility redirect for old indexed links.
+
+## Adding a post
+
+1. Add metadata to `src/content/manifest.json` with a lowercase stable slug, an ISO `publishedAt` date, canonical path, stable OG filename, and body module path.
+2. Add the matching `src/content/posts/<slug>/index.mdx` or `index.tsx` body.
+3. Use `ContentImage` for media so dimensions, alt text, lazy loading, and decoding behavior are explicit.
+4. Run `pnpm validate:content`, `pnpm check`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
+
+The OG generator reads the same manifest; it has no second page/post registry. It removes stale generated PNGs before rendering and `validate:content` checks ownership in both directions.
+
+## Sleep data
+
+The raw AutoSleep export is personal input and belongs at `data/sleep/raw/sleep.csv`. That directory is ignored and never served. The preprocessing command is:
+
+```bash
+node scripts/data/sleep/preprocess.mjs
+```
+
+The command writes the private/debug CSV to `data/sleep/derived/sleep-clean.csv` and only the compact chart-facing artifact to `src/features/sleep/data/sleep.json`. The generated artifact includes schema version, source SHA-256, row count, cleaning provenance, and chart series. Its schema is checked by `pnpm validate:data`; pure statistical functions have fixture tests. The sleep article intentionally publishes the aggregated chart data, not the row-level export.
+
+## Assets and external services
+
+- Runtime fonts live in `public/fonts`; build-only OG font inputs live in `assets/fonts`. The latter are read by `scripts/generate-og.mjs` and are not browser assets.
+- The history article currently uses remote GitHub-hosted screenshots intentionally because those images are part of the site-history archive. Each image has dimensions, alt text, lazy loading, and an explicit `ContentImage` boundary. New posts should prefer post-owned local media unless remote hosting is deliberate.
+- Giscus uses the existing `enocla/website-v6` discussion repository, but maps comments to stable post slugs rather than mutable titles. Umami and music API identifiers/configuration live under `src/integrations/`.
+
+## Deployment
 
 ```bash
 pnpm build
+pnpm preview
 ```
 
-## Styling
-
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Remove `@tailwindcss/vite` and `tailwindcss` from `package.json`
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
-
-```bash
-pnpm lint
-pnpm format
-pnpm check
-```
-
-
-## Deploy to Vercel
-
-1. Push this repo to GitHub, GitLab, or Bitbucket
-2. In Vercel, choose **Add New > Project** and import the repo
-3. Keep the detected TanStack Start framework settings
-4. Add production values from `.env.example` under **Settings > Environment Variables**
-5. Deploy
-
-Vercel runs the build script and deploys Nitro's output as Vercel Functions and
-static assets. The included `vercel.json` makes framework detection explicit.
-
-Variables prefixed with `VITE_` are included in the browser bundle. Keep secrets
-unprefixed so they remain server-only.
-
-
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+Vercel can deploy the generated TanStack Start/Nitro output using the included `vercel.json`. Keep server-only secrets unprefixed; only variables prefixed `VITE_` are included in the browser bundle.

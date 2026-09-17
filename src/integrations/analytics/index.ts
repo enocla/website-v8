@@ -1,0 +1,1 @@
+export { umamiScript } from "./config";

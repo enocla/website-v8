@@ -1,0 +1,53 @@
+{
+	"version": 1,
+	"pages": {
+		"home": {
+			"title": "about me",
+			"description": "about me",
+			"path": "/",
+			"ogImage": "about-me.png"
+		},
+		"about": {
+			"title": "about",
+			"description": "about",
+			"path": "/about",
+			"ogImage": "about.png"
+		},
+		"projects": {
+			"title": "projects",
+			"description": "projects",
+			"path": "/projects",
+			"ogImage": "projects.png"
+		},
+		"writing": {
+			"title": "writing",
+			"description": "writing",
+			"path": "/writing",
+			"ogImage": "writing.png"
+		}
+	},
+	"posts": [
+		{
+			"slug": "sleep",
+			"title": "~3 Years of sleep data",
+			"description": "1,125 nights, eight charts.",
+			"publishedAt": "2026-09-17",
+			"canonicalPath": "/writing/sleep",
+			"ogTitle": "writing - ~3 Years of sleep data",
+			"ogImage": "sleep.png",
+			"bodyModule": "./posts/sleep/index.tsx",
+			"kind": "react"
+		},
+		{
+			"slug": "history",
+			"title": "The History of this Site",
+			"description": "it's changed a lot, but it's not the end.",
+			"publishedAt": "2025-04-30",
+			"canonicalPath": "/writing/history",
+			"ogTitle": "writing - The History of this Site",
+			"ogImage": "history.png",
+			"bodyModule": "./posts/history/index.mdx",
+			"kind": "mdx"
+		}
+	]
+}

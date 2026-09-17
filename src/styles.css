@@ -69,8 +69,41 @@
     drop-shadow(0 1px 20px rgb(0 0 0 / 0.05));
 }
 
-nav a {
-  filter: grayscale(0);
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.timeline::before {
+  background: linear-gradient(
+    to bottom,
+    var(--color-accent-subtle),
+    transparent
+  );
+}
+
+.sleep-chart-full {
+  width: calc(100% + 2rem);
+  margin-left: -1rem;
+  margin-block: 1.25rem;
+}
+
+.song-status[data-playing="true"] {
+  background-color: #90b99f;
+}
+
+.song-status[data-playing="false"] {
+  background-color: #ea83a5;
+}
+
+.song-cover {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  object-fit: contain;
+  outline: 1px solid var(--color-border-strong);
+  outline-offset: -1px;
+  background: radial-gradient(circle, var(--color-border) 0%, transparent 70%);
 }
 
 html {

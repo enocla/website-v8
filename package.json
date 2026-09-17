@@ -2,51 +2,55 @@
   "name": "website-v8",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.25.0",
   "imports": {
     "#/*": "./src/*"
   },
   "scripts": {
     "dev": "vite dev --port 3000",
     "generate-routes": "tsr generate",
-    "build": "node scripts/generate-og.mjs && vite build",
+    "generate:og": "node scripts/generate-og.mjs",
+    "validate:content": "node scripts/content/validate.mjs",
+    "validate:data": "node scripts/data/sleep/validate.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test scripts/content/manifest.test.mjs scripts/data/sleep/csv.test.mjs scripts/data/sleep/statistics.test.mjs scripts/data/sleep/schema.test.mjs scripts/data/sleep/transform.test.mjs",
+    "prebuild": "pnpm generate:og && pnpm validate:content && pnpm validate:data",
+    "build": "vite build",
     "preview": "vite preview",
-    "format": "biome format",
+    "format": "biome format --write .",
     "lint": "biome lint",
-    "check": "biome check"
+    "check": "biome check",
+    "ci": "pnpm check && pnpm typecheck && pnpm test && pnpm validate:content && pnpm validate:data && pnpm build"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/react-devtools": "latest",
-    "@tanstack/react-router": "latest",
-    "@tanstack/react-router-devtools": "latest",
-    "@tanstack/react-start": "latest",
+    "@tailwindcss/vite": "4.3.3",
+    "@tanstack/charts": "0.18.0",
+    "@tanstack/react-devtools": "0.10.12",
+    "@tanstack/react-router": "1.170.36",
+    "@tanstack/react-router-devtools": "1.167.2",
+    "@tanstack/react-start": "1.168.54",
     "nitro": "3.0.260610-beta",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tailwindcss": "^4.1.18"
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tailwindcss": "4.3.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.5",
-    "@resvg/resvg-js": "^2.6.2",
-    "@rolldown/plugin-babel": "^0.2.3",
-    "@tailwindcss/typography": "^0.5.16",
-    "@tanstack/devtools-vite": "latest",
-    "@tanstack/router-cli": "^1.132.0",
-    "@types/node": "^22.10.2",
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
-    "@vitejs/plugin-react": "^6.0.1",
-    "babel-plugin-react-compiler": "^1.0.0",
-    "satori": "^0.33.4",
-    "subset-font": "^2.7.0",
-    "typescript": "^6.0.2",
-    "vite": "^8.0.0",
-    "wawoff2": "^2.0.1"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss"
-    ]
+    "@mdx-js/react": "3.1.0",
+    "@mdx-js/rollup": "3.1.0",
+    "@resvg/resvg-js": "2.6.2",
+    "@rolldown/plugin-babel": "0.2.4",
+    "@tanstack/devtools-vite": "0.8.5",
+    "@tanstack/router-cli": "1.167.36",
+    "@types/node": "22.20.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "babel-plugin-react-compiler": "1.0.0",
+    "satori": "0.33.4",
+    "subset-font": "2.7.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.0",
+    "wawoff2": "2.0.1"
   }
 }
