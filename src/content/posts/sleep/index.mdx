@@ -1,0 +1,85 @@
+import {
+	AcfBars,
+	BedtimeAdjHist,
+	BedtimeLongitudinal,
+	BedtimeVsAsleep,
+	BedtimeVsOverhead,
+	BedtimeVsRem,
+	BedtimeVsWake,
+	SleepDurationHist,
+	WeekdayBars,
+} from "../../../features/sleep/charts/SleepCharts";
+import { sleepStats } from "../../../features/sleep/data/model";
+
+## Sleep duration
+
+<SleepDurationHist />
+
+- Mean {sleepStats.asleepMean.toFixed(2)} hours
+- Median {sleepStats.asleepMedian.toFixed(2)} hours
+- Skew {sleepStats.asleepSkew.toFixed(2)}
+- Kurtosis {sleepStats.asleepKurt.toFixed(2)}
+
+## Bedtimes, 2023–2026
+
+<BedtimeLongitudinal />
+
+- Raw std dev {sleepStats.bedRawStd.toFixed(2)} hours
+
+<BedtimeAdjHist />
+
+- Adjusted std dev {sleepStats.bedAdjStd.toFixed(2)} hours
+- Median 12:15am
+- IQR 11:13pm – 1:19am
+
+## Bedtime vs sleep duration
+
+<BedtimeVsAsleep />
+
+- r = {sleepStats.regAsleep.r.toFixed(2)}
+- p = 4.3 × 10⁻²¹
+- Slope {(60 * sleepStats.regAsleep.slopeHrsPerHr).toFixed(1)} min/hour
+
+## Bedtime vs wake time
+
+<BedtimeVsWake />
+
+- r = {sleepStats.regWake.r.toFixed(2)}
+- p = 6.7 × 10⁻⁵⁹
+- Slope +{(60 * sleepStats.regWake.slopeHrsPerHr).toFixed(1)} min/hour
+
+## Bedtime vs REM sleep
+
+<BedtimeVsRem />
+
+- r = {sleepStats.regRem.r.toFixed(2)}
+- p = 2.8 × 10⁻¹⁵
+- Slope {(60 * sleepStats.regRem.slopeHrsPerHr).toFixed(1)} min/hour
+- Early (&lt;11:15pm) {sleepStats.remEarlyMin.toFixed(1)} min vs late (&gt;1:20am) {sleepStats.remLateMin.toFixed(1)} min
+
+## Bedtime vs time awake in bed
+
+<BedtimeVsOverhead />
+
+- r = {sleepStats.regOverhead.r.toFixed(2)}
+- p = 7.6 × 10⁻⁴
+- Slope {(60 * sleepStats.regOverhead.slopeHrsPerHr).toFixed(1)} min/hour
+- Mean {sleepStats.overheadMeanMin.toFixed(1)} min awake in bed
+- The tracker's time-to-fall-asleep column reads zero on 98% of nights, so sleep-onset latency and night wakings are bundled here as time in bed minus time asleep
+- 118 nights where the tracker contradicts itself (more time asleep than in bed, or more time in bed than the night was long) are excluded
+
+## Weekly rhythm
+
+<WeekdayBars />
+
+- Friday 7.50 hours, Saturday 7.39 hours
+- Mon–Thu 6.81–6.95 hours
+- ANOVA p = 2.6 × 10⁻⁴
+
+<AcfBars />
+
+- Lag 1: {sleepStats.acfLag1.toFixed(2)}
+- Lag 7: {sleepStats.acfLag7.toFixed(2)}
+- Lag 14: {sleepStats.acfLag14.toFixed(2)}
+- Short-night threshold {sleepStats.tert1.toFixed(2)} hours
+- Third short night {(sleepStats.streakShort3 * 100).toFixed(1)}%, catch-up{" "}{(sleepStats.streakLong * 100).toFixed(1)}%

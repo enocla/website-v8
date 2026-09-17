@@ -160,6 +160,21 @@ const normCurve = [];
 const regAsleep = ols(bedAdj, asleepAll);
 const wakeAll = sessions.map((s) => s.wakeNoon);
 const regWake = ols(bedAdj, wakeAll);
+// Overhead = time in bed not asleep (sleep-onset latency + night wakings
+// bundled: the export's fellAsleepIn column is 98% zeros, so it can't carry
+// onset alone). Rows with no usable overhead value are excluded from the
+// series and the regression (but kept in the debug CSV for auditability):
+// negative values are physically impossible, and time in bed can't exceed
+// the observed bed->wake span (the 1-minute device rounding slack in the
+// consistency flags would otherwise let two rows display just below zero).
+const overheadOf = (s) => s.inBed - s.asleep;
+const overheadBad = (s) => overheadOf(s) < 0 || s.inBed > s.span + 0.5;
+const overheadKept = sessions.filter((s) => !overheadBad(s));
+const overheadExcluded = sessions.length - overheadKept.length;
+const regOverhead = ols(
+	overheadKept.map((s) => s.bedNoonAdj),
+	overheadKept.map((s) => overheadOf(s)),
+);
 const remRows = sessions.filter((s) => s.rem !== null);
 const deepRows = sessions.filter((s) => s.deep !== null);
 const regRem = ols(remRows.map((s) => s.bedNoonAdj), remRows.map((s) => s.rem));
@@ -223,6 +238,7 @@ console.log(`bedRaw  std=${popStd(bedRaw).toFixed(2)} (5.42)`);
 console.log(`bedAdj  std=${popStd(bedAdj).toFixed(2)} (2.05)  med=${clock(median(bedAdj))} (12:15 AM)  Q1=${clock(quantileFloor(bedAdj, 0.25))} (11:12 PM)  Q3=${clock(quantileFloor(bedAdj, 3 / 4))} (1:17 AM)`);
 console.log(`reg asleep: r=${regAsleep.r.toFixed(3)} (-0.270) p=${regAsleep.p.toExponential(2)} (2.64e-20) slope=${(60 * regAsleep.slope).toFixed(1)} min/hr (-13.4)`);
 console.log(`reg wake:   r=${regWake.r.toFixed(3)} (0.455) p=${regWake.p.toExponential(2)} (1.23e-58) slope=${(60 * regWake.slope).toFixed(1)} min/hr (34.8)`);
+console.log(`reg overhead: r=${regOverhead.r.toFixed(3)} p=${regOverhead.p.toExponential(2)} slope=${(60 * regOverhead.slope).toFixed(1)} min/hr mean=${(60 * mean(overheadKept.map(overheadOf))).toFixed(1)} min (excluded ${overheadExcluded} consistency-check failures)`);
 console.log(`reg deep:   r=${regDeep.r.toFixed(3)} (0.015) p=${regDeep.p.toFixed(2)} (0.64) mean=${deepMeanMin.toFixed(1)} min (54.1)`);
 console.log(`reg rem:    r=${regRem.r.toFixed(3)} (-0.246) p=${regRem.p.toExponential(2)} (1.10e-15) slope=${(60 * regRem.slope).toFixed(2)} min/hr (-3.78)`);
 console.log(`rem early=${(60 * mean(remEarly)).toFixed(1)} (119.5) late=${(60 * mean(remLate)).toFixed(1)} (95.1)`);
@@ -246,7 +262,7 @@ function clock(noonH) {
 
 // ------------------------------------------------------------------ outputs --
 // sleep-clean.csv
-const cleanHeader = ["date", "weekday", "bedtime_wall", "waketime_wall", "bed_noon_raw_h", "travel_shift_h", "bed_noon_adj_h", "wake_noon_h", "inBed_h", "asleep_h", "rem_h", "deep_h", "efficiency_device", "efficiency_clean", "sleepBPM", "hrv", "sleepHRV", "dayBPM", "wakingBPM", "respAvg", "flags"];
+const cleanHeader = ["date", "weekday", "bedtime_wall", "waketime_wall", "bed_noon_raw_h", "travel_shift_h", "bed_noon_adj_h", "wake_noon_h", "inBed_h", "asleep_h", "overhead_h", "rem_h", "deep_h", "efficiency_device", "efficiency_clean", "sleepBPM", "hrv", "sleepHRV", "dayBPM", "wakingBPM", "respAvg", "flags"];
 const cleanLines = [cleanHeader.join(",")];
 const r2 = (v) => (v === null || v === undefined || Number.isNaN(v) ? "" : Math.round(v * 100) / 100);
 for (let i = 0; i < sessions.length; i++) {
@@ -255,7 +271,7 @@ for (let i = 0; i < sessions.length; i++) {
 	cleanLines.push([
 		s.bedDate, wdOf(s), r[C.bedtime], r[C.waketime],
 		r2(s.bedNoonRaw), s.travel ? s.shift : 0, r2(s.bedNoonAdj), r2(s.wakeNoon),
-		r2(s.inBed), r2(s.asleep), r2(s.rem), r2(s.deep),
+		r2(s.inBed), r2(s.asleep), r2(overheadOf(s)), r2(s.rem), r2(s.deep),
 		r[C.efficiency], r2(s.efficiency),
 		r2(s.sleepBPM), r2(s.hrv), r2(s.sleepHRV), r2(s.dayBPM), r2(s.wakingBPM), r2(s.respAvg),
 		`"${s.flags}"`,
@@ -282,6 +298,8 @@ const out = {
 		bedAdjMedian: r3(median(bedAdj)), bedAdjQ1: r3(quantileFloor(bedAdj, 0.25)), bedAdjQ3: r3(quantileFloor(bedAdj, 0.75)),
 		regAsleep: { r: r3(regAsleep.r), p: regAsleep.p, slopeHrsPerHr: r3(regAsleep.slope) },
 		regWake: { r: r3(regWake.r), p: regWake.p, slopeHrsPerHr: r3(regWake.slope) },
+		regOverhead: { r: r3(regOverhead.r), p: regOverhead.p, slopeHrsPerHr: r3(regOverhead.slope) },
+		overheadMeanMin: r3(60 * mean(overheadKept.map(overheadOf))),
 		regDeep: { r: r3(regDeep.r), p: regDeep.p, slopeHrsPerHr: r3(regDeep.slope) },
 		regRem: { r: r3(regRem.r), p: regRem.p, slopeHrsPerHr: r3(regRem.slope) },
 		deepMeanMin: r3(deepMeanMin),
@@ -298,6 +316,7 @@ const out = {
 	longitudinal: sessions.map((s, i) => ({ i, day: dayNum(s.bedDate) - dayNum(sessions[0].bedDate), bed: r3(s.bedNoonRaw), date: s.bedDate })),
 	scatterAsleep: sessions.map((s, i) => ({ i, x: r3(s.bedNoonAdj), y: r3(s.asleep) })),
 	scatterWake: sessions.map((s, i) => ({ i, x: r3(s.bedNoonAdj), y: r3(s.wakeNoon) })),
+	scatterOverhead: overheadKept.map((s) => ({ i: sessionIndex.get(s), x: r3(s.bedNoonAdj), y: r3(60 * overheadOf(s)) })),
 	scatterDeep: deepRows.map((s) => ({ i: sessionIndex.get(s), x: r3(s.bedNoonAdj), y: r3(60 * s.deep) })),
 	scatterRem: remRows.map((s) => ({ i: sessionIndex.get(s), x: r3(s.bedNoonAdj), y: r3(60 * s.rem) })),
 	weekday: weekday.map((w) => ({ day: w.day, mean: r3(w.mean), n: w.n })),

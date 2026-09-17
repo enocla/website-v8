@@ -8,6 +8,7 @@ const REQUIRED_ARRAYS = [
 	"longitudinal",
 	"scatterAsleep",
 	"scatterWake",
+	"scatterOverhead",
 	"scatterDeep",
 	"scatterRem",
 	"weekday",

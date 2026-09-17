@@ -57,7 +57,7 @@ The command writes the private/debug CSV to `data/sleep/derived/sleep-clean.csv`
 
 ## Assets and external services
 
-- Runtime fonts live in `public/fonts`; build-only OG font inputs live in `assets/fonts`. The latter are read by `scripts/generate-og.mjs` and are not browser assets.
+- Runtime fonts live in `public/fonts` (New Spirit static 400/500/600/700 for serif/sans/headings, Maple Mono for mono); legacy Newsreader, Departure Mono, Yrsa, Archivo, Work Sans, Supreme, Sentient and Libertinus Serif files are retained in `public/fonts` and `assets/fonts` but no longer referenced. The OG generator reads its New Spirit and Maple Mono inputs from `public/fonts`.
 - The history article currently uses remote GitHub-hosted screenshots intentionally because those images are part of the site-history archive. Each image has dimensions, alt text, lazy loading, and an explicit `ContentImage` boundary. New posts should prefer post-owned local media unless remote hosting is deliberate.
 - Giscus uses the existing `enocla/website-v6` discussion repository, but maps comments to stable post slugs rather than mutable titles. Umami and music API identifiers/configuration live under `src/integrations/`.
 

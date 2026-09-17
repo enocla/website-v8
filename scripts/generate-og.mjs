@@ -53,9 +53,12 @@ async function loadWoff2(relativePath) {
 }
 
 function titleFontSize(title) {
-	if (title.length > 80) return 56;
-	if (title.length > 40) return 72;
-	return 92;
+	// New Spirit is proportional and narrower than the previous Departure
+	// Mono (0.636em advance); the content box is ~1068px wide, so 44px
+	// stays well inside a single line for current titles (max 35 chars).
+	if (title.length > 80) return 28;
+	if (title.length > 40) return 36;
+	return 44;
 }
 
 const el = React.createElement;
@@ -101,7 +104,7 @@ function template(title) {
 				"div",
 				{
 					style: {
-						fontFamily: "Sentient",
+						fontFamily: "New Spirit",
 						fontSize: titleFontSize(title),
 						lineHeight: 1.08,
 						color: INK,
@@ -123,18 +126,23 @@ function template(title) {
 
 const fonts = [
 	{
-		name: "Sentient",
-		file: "assets/fonts/Sentient-400.subset.woff2",
+		name: "New Spirit",
+		file: "public/fonts/NewSpirit-400.woff2",
 		weight: 400,
 	},
 	{
-		name: "Sentient",
-		file: "assets/fonts/Sentient-500.subset.woff2",
+		name: "New Spirit",
+		file: "public/fonts/NewSpirit-500.woff2",
 		weight: 500,
 	},
 	{
-		name: "Sentient",
-		file: "assets/fonts/Sentient-700.subset.woff2",
+		name: "New Spirit",
+		file: "public/fonts/NewSpirit-600.woff2",
+		weight: 600,
+	},
+	{
+		name: "New Spirit",
+		file: "public/fonts/NewSpirit-700.woff2",
 		weight: 700,
 	},
 	{

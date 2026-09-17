@@ -18,7 +18,7 @@ export default function WritingIndexPage() {
 						className="block relative p-4 post group"
 					>
 						<div className="gap-3 sm:flex items-center-safe">
-							<h1 className="text-xl lg:text-xl text-text-primary font-serif">
+							<h1 className="text-2xl lg:text-2xl text-text-primary font-display">
 								{post.title}
 							</h1>
 							<hr className="inline flex-1 border-dashed border-border" />

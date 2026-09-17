@@ -16,7 +16,7 @@ export default function PostPage({ post }: { post: PostEntry }) {
 	);
 	return (
 		<>
-			<h1 className="pt-3 text-xl font-serif text-text-primary">
+			<h1 className="pt-3 text-2xl font-display text-text-primary">
 				{post.title}
 			</h1>
 			<p className="pt-2 text-text-secondary">

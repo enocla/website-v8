@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --font-serif: "Sentient", serif;
-  --font-sans: "Sentient", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "New Spirit", Georgia, serif;
+  --font-sans: "New Spirit", Georgia, serif;
   --font-mono: "Maple Mono", ui-monospace;
+  --font-display: "New Spirit", Georgia, serif;
 
   --color-bg: #f1f0e8;
   --color-bg-grid: rgb(94 89 86 / 0.12);
@@ -27,11 +28,35 @@
 }
 
 @font-face {
-  font-family: "Sentient";
+  font-family: "New Spirit";
   font-style: normal;
-  font-weight: 200 700;
+  font-weight: 400;
   font-display: swap;
-  src: url("/fonts/Sentient-variable.subset.woff2") format("woff2");
+  src: url("/fonts/NewSpirit-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "New Spirit";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/NewSpirit-500.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "New Spirit";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/NewSpirit-600.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "New Spirit";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/NewSpirit-700.woff2") format("woff2");
 }
 
 @font-face {
@@ -83,9 +108,20 @@
 }
 
 .sleep-chart-full {
-  width: calc(100% + 2rem);
-  margin-left: -1rem;
   margin-block: 1.25rem;
+  --ts-chart-tooltip-background: var(--color-bg);
+  --ts-chart-tooltip-color: var(--color-text-primary);
+  --ts-chart-tooltip-border: 1px solid var(--color-border-strong);
+  --ts-chart-tooltip-border-radius: 0.1rem;
+  --ts-chart-tooltip-shadow: 0 1px 3px rgb(0 0 0 / 0.08), 0 4px 16px rgb(0 0 0 / 0.1);
+  --ts-chart-tooltip-font:
+    500 0.75rem/1.4 "New Spirit", Georgia, serif;
+}
+
+/* Tooltip values read as figures: Maple Mono with tabular numerals
+   (the row already sets font-variant-numeric inline). */
+.sleep-tooltip .ts-chart-tooltip__row > span:last-child {
+  font-family: var(--font-mono);
 }
 
 .song-status[data-playing="true"] {
@@ -141,29 +177,40 @@ body {
   image-rendering: pixelated;
 }
 
+/* Every heading uses New Spirit. This base rule covers unclassed
+   h-tags; headings with explicit utilities use font-display to agree. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-serif);
+}
+
 .prose {
   h1 {
-    @apply text-2xl pt-5 text-text-primary font-serif;
+    @apply text-3xl pt-5 text-text-primary ;
   }
 
   h2 {
-    @apply text-xl pt-4 text-text-primary font-serif;
+    @apply text-2xl pt-4 text-text-primary ;
   }
 
   h3 {
-    @apply text-lg pt-3 text-text-primary font-serif;
+    @apply text-xl pt-3 text-text-primary ;
   }
 
   h4 {
-    @apply text-lg pt-2 text-text-primary font-serif;
+    @apply text-xl pt-2 text-text-primary ;
   }
 
   h5 {
-    @apply pt-1 font-[420] text-text-primary font-serif;
+    @apply pt-1 text-lg font-normal text-text-primary ;
   }
 
   h6 {
-    @apply text-sm pt-1 text-text-primary font-serif;
+    @apply text-base pt-1 text-text-primary ;
   }
 
   hr {
@@ -224,7 +271,7 @@ body {
   }
 
   th {
-    @apply font-semibold bg-table-bg;
+    @apply font-medium bg-table-bg;
   }
 
   code {

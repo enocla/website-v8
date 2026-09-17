@@ -19,6 +19,9 @@ const ACCENT = "#01567e";
 const MUTED = "#a09a94";
 const INK = "#1c1613";
 
+/** Class hook for site tooltip chrome (see .sleep-tooltip in styles.css). */
+const TOOLTIP_CLASS = "sleep-tooltip";
+
 /** Noon-to-noon clock hours (12 = midnight) -> "12am"-style label. */
 function fmtClock(h: number): string {
 	const mins = ((Math.round(h * 60) % 1440) + 1440) % 1440;
@@ -34,6 +37,14 @@ const clockTicks = {
 	// biome-ignore lint/suspicious/noExplicitAny: scale tick value type varies
 	format: (v: any) => fmtClock(Number(v)),
 };
+
+/**
+ * Full noon-to-noon clock domain. The scatter points cluster at night, so the
+ * inferred data domain is much narrower than the clock; without a pinned
+ * domain the explicit tick values above extrapolate outside the plot and the
+ * axis baselines hug only the data extent (tall narrow plot, floating axes).
+ */
+const CLOCK_DOMAIN: [number, number] = [0, 24];
 
 type LoosePoint = { xValue: unknown; yValue: unknown; datum: unknown };
 
@@ -98,32 +109,21 @@ function countText(point: LoosePoint): string | null {
 function Shell({
 	definition,
 	height,
-	aspectRatio,
 	ariaLabel,
 }: {
 	// biome-ignore lint/suspicious/noExplicitAny: definition type varies per chart
 	definition: any;
-	height?: number;
-	aspectRatio?: number;
+	height: number;
 	ariaLabel: string;
 }) {
 	return (
 		<div className="sleep-chart-full">
-			{height != null ? (
-				<Chart
-					definition={definition}
-					height={height}
-					initialWidth={640}
-					ariaLabel={ariaLabel}
-				/>
-			) : (
-				<Chart
-					definition={definition}
-					aspectRatio={aspectRatio ?? 1}
-					initialWidth={640}
-					ariaLabel={ariaLabel}
-				/>
-			)}
+			<Chart
+				definition={definition}
+				height={height}
+				initialWidth={640}
+				ariaLabel={ariaLabel}
+			/>
 		</div>
 	);
 }
@@ -155,6 +155,7 @@ export function SleepDurationHist() {
 				},
 				tooltip: {
 					use: tooltip,
+					className: TOOLTIP_CLASS,
 					items: [
 						{
 							id: "range",
@@ -221,6 +222,7 @@ export function BedtimeLongitudinal() {
 				},
 				tooltip: {
 					use: tooltip,
+					className: TOOLTIP_CLASS,
 					items: [
 						{
 							id: "date",
@@ -265,6 +267,7 @@ export function BedtimeAdjHist() {
 				},
 				tooltip: {
 					use: tooltip,
+					className: TOOLTIP_CLASS,
 					items: [
 						{
 							id: "range",
@@ -288,6 +291,7 @@ export function BedtimeAdjHist() {
 
 const fmtAsleepY = (v: number) => `${v.toFixed(2)} h`;
 const fmtRemY = (v: number) => `${Math.round(v)} min`;
+const fmtOverheadY = (v: number) => `${Math.round(v)} min`;
 
 function Scatter({
 	points,
@@ -295,14 +299,12 @@ function Scatter({
 	formatY,
 	yTicks,
 	ariaLabel,
-	square,
 }: {
 	points: { i: number; x: number; y: number }[];
 	yLabel: string;
 	formatY: (v: number) => string;
 	yTicks?: { values: number[] };
 	ariaLabel: string;
-	square?: boolean;
 }) {
 	const definition = useMemo(
 		() =>
@@ -325,7 +327,9 @@ function Scatter({
 				],
 				scales: {
 					x: {
-						scale: scaleLinear,
+						// A scale instance retains its configured domain; a
+						// factory would infer the narrow data extent instead.
+						scale: scaleLinear().domain(CLOCK_DOMAIN),
 						grid: true,
 						axis: { label: "Bedtime (noon-to-noon clock)", ticks: clockTicks },
 					},
@@ -337,6 +341,7 @@ function Scatter({
 				},
 				tooltip: {
 					use: tooltip,
+					className: TOOLTIP_CLASS,
 					items: [
 						{ id: "x", label: "Bedtime", text: bedtimeText },
 						{
@@ -352,12 +357,7 @@ function Scatter({
 			}),
 		[points, yLabel, formatY, yTicks],
 	);
-	if (square) {
-		return (
-			<Shell definition={definition} aspectRatio={1} ariaLabel={ariaLabel} />
-		);
-	}
-	return <Shell definition={definition} height={320} ariaLabel={ariaLabel} />;
+	return <Shell definition={definition} height={480} ariaLabel={ariaLabel} />;
 }
 
 export function BedtimeVsAsleep() {
@@ -367,7 +367,6 @@ export function BedtimeVsAsleep() {
 			yLabel="Hours asleep"
 			formatY={fmtAsleepY}
 			ariaLabel="Scatterplot of bedtime versus hours asleep with regression line"
-			square
 		/>
 	);
 }
@@ -386,7 +385,6 @@ export function BedtimeVsWake() {
 			formatY={fmtClock}
 			yTicks={wakeTicks}
 			ariaLabel="Scatterplot of bedtime versus wake time with regression line"
-			square
 		/>
 	);
 }
@@ -398,7 +396,17 @@ export function BedtimeVsRem() {
 			yLabel="REM sleep (minutes)"
 			formatY={fmtRemY}
 			ariaLabel="Scatterplot of bedtime versus REM sleep minutes with regression line"
-			square
+		/>
+	);
+}
+
+export function BedtimeVsOverhead() {
+	return (
+		<Scatter
+			points={sleep.scatterOverhead}
+			yLabel="Time awake in bed (minutes)"
+			formatY={fmtOverheadY}
+			ariaLabel="Scatterplot of bedtime versus time awake in bed with regression line"
 		/>
 	);
 }
@@ -439,6 +447,7 @@ export function WeekdayBars() {
 				},
 				tooltip: {
 					use: tooltip,
+					className: TOOLTIP_CLASS,
 					items: [
 						{
 							id: "day",
@@ -508,6 +517,7 @@ export function AcfBars() {
 			},
 			tooltip: {
 				use: tooltip,
+				className: TOOLTIP_CLASS,
 				items: [
 					{
 						id: "lag",

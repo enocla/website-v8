@@ -26,4 +26,4 @@ These services are enhancements rather than content prerequisites: post metadata
 
 ## Fonts
 
-`public/fonts` contains runtime browser fonts. `assets/fonts` contains build-only font inputs used to render OG PNGs; those files are not browser assets. `scripts/generate-og.mjs` fails if an input font cannot be loaded.
+`public/fonts` contains runtime browser fonts (currently New Spirit plus Maple Mono). `assets/fonts` holds retained legacy Sentient inputs; those files are no longer browser assets and are not read by the OG generator. `scripts/generate-og.mjs` reads the New Spirit and Maple Mono inputs from `public/fonts` and fails if an input font cannot be loaded.

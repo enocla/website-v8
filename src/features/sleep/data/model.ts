@@ -24,6 +24,8 @@ export interface SleepStats {
 	bedAdjQ3: number;
 	regAsleep: { r: number; p: number; slopeHrsPerHr: number };
 	regWake: { r: number; p: number; slopeHrsPerHr: number };
+	regOverhead: { r: number; p: number; slopeHrsPerHr: number };
+	overheadMeanMin: number;
 	regDeep: { r: number; p: number; slopeHrsPerHr: number };
 	regRem: { r: number; p: number; slopeHrsPerHr: number };
 	deepMeanMin: number;
@@ -60,6 +62,7 @@ export interface SleepData {
 	longitudinal: { i: number; day: number; bed: number; date: string }[];
 	scatterAsleep: Point[];
 	scatterWake: Point[];
+	scatterOverhead: Point[];
 	scatterDeep: Point[];
 	scatterRem: Point[];
 	weekday: { day: string; mean: number; n: number }[];

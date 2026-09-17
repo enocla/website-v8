@@ -3,6 +3,7 @@ export {
 	BedtimeAdjHist,
 	BedtimeLongitudinal,
 	BedtimeVsAsleep,
+	BedtimeVsOverhead,
 	BedtimeVsRem,
 	BedtimeVsWake,
 	SleepDurationHist,

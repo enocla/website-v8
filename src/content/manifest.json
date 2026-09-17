@@ -30,13 +30,13 @@
 		{
 			"slug": "sleep",
 			"title": "~3 Years of sleep data",
-			"description": "1,125 nights, eight charts.",
+			"description": "1,125 nights, nine charts.",
 			"publishedAt": "2026-09-17",
 			"canonicalPath": "/writing/sleep",
 			"ogTitle": "writing - ~3 Years of sleep data",
 			"ogImage": "sleep.png",
-			"bodyModule": "./posts/sleep/index.tsx",
-			"kind": "react"
+			"bodyModule": "./posts/sleep/index.mdx",
+			"kind": "mdx"
 		},
 		{
 			"slug": "history",
