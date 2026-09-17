@@ -1,87 +1,77 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import Song from "../components/Song";
+import { ogImageUrl } from "../lib/site";
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute("/")({
+	head: () => ({
+		meta: [
+			{ title: "about me" },
+			{ property: "title", content: "about me" },
+			{ property: "og:title", content: "about me" },
+			{
+				property: "og:image",
+				content: ogImageUrl("about-me.png"),
+			},
+			{ name: "twitter:title", content: "about me" },
+			{
+				name: "twitter:image",
+				content: ogImageUrl("about-me.png"),
+			},
+			{ name: "description", content: "about me" },
+		],
+	}),
+	component: Index,
+});
 
-function App() {
-  return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <section className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
-        <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(79,184,178,0.32),transparent_66%)]" />
-        <div className="pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(47,106,74,0.18),transparent_66%)]" />
-        <p className="island-kicker mb-3">TanStack Start Base Template</p>
-        <h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold tracking-tight text-[var(--sea-ink)] sm:text-6xl">
-          Start simple, ship quickly.
-        </h1>
-        <p className="mb-8 max-w-2xl text-base text-[var(--sea-ink-soft)] sm:text-lg">
-          This base starter intentionally keeps things light: two routes, clean
-          structure, and the essentials you need to build from scratch.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <a
-            href="/about"
-            className="rounded-full border border-[rgba(50,143,151,0.3)] bg-[rgba(79,184,178,0.14)] px-5 py-2.5 text-sm font-semibold text-[var(--lagoon-deep)] no-underline transition hover:-translate-y-0.5 hover:bg-[rgba(79,184,178,0.24)]"
-          >
-            About This Starter
-          </a>
-          <a
-            href="https://tanstack.com/router"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-[rgba(23,58,64,0.2)] bg-white/50 px-5 py-2.5 text-sm font-semibold text-[var(--sea-ink)] no-underline transition hover:-translate-y-0.5 hover:border-[rgba(23,58,64,0.35)]"
-          >
-            Router Guide
-          </a>
-        </div>
-      </section>
+function Index() {
+	return (
+		<>
+			<style>{`nav a:not([data-nav-current='index']) {
+      opacity: 0.5;
+      filter: grayscale(1);
+    }`}</style>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          [
-            'Type-Safe Routing',
-            'Routes and links stay in sync across every page.',
-          ],
-          [
-            'Server Functions',
-            'Call server code from your UI without creating API boilerplate.',
-          ],
-          [
-            'Streaming by Default',
-            'Ship progressively rendered responses for faster experiences.',
-          ],
-          [
-            'Tailwind Native',
-            'Design quickly with utility-first styling and reusable tokens.',
-          ],
-        ].map(([title, desc], index) => (
-          <article
-            key={title}
-            className="island-shell feature-card rise-in rounded-2xl p-5"
-            style={{ animationDelay: `${index * 90 + 80}ms` }}
-          >
-            <h2 className="mb-2 text-base font-semibold text-[var(--sea-ink)]">
-              {title}
-            </h2>
-            <p className="m-0 text-sm text-[var(--sea-ink-soft)]">{desc}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="island-shell mt-8 rounded-2xl p-6">
-        <p className="island-kicker mb-2">Quick Start</p>
-        <ul className="m-0 list-disc space-y-2 pl-5 text-sm text-[var(--sea-ink-soft)]">
-          <li>
-            Edit <code>src/routes/index.tsx</code> to customize the home page.
-          </li>
-          <li>
-            Update <code>src/components/Header.tsx</code> and{' '}
-            <code>src/components/Footer.tsx</code> for brand links.
-          </li>
-          <li>
-            Add routes in <code>src/routes</code> and tweak visual tokens in{' '}
-            <code>src/styles.css</code>.
-          </li>
-        </ul>
-      </section>
-    </main>
-  )
+			<article className="prose">
+				<h1>Enoch Lau</h1>
+				<hr />
+				<h5>Waterloo, ON</h5>
+				<p>
+					I&apos;m a 17 year old undergraduate student studying cs at the{" "}
+					<mark>
+						<strong>University of Waterloo</strong>
+					</mark>{" "}
+					from <strong>Hong Kong</strong> studying in <strong>Canada</strong>.
+				</p>
+				<p>
+					I love math, tinkering with software, programming, and design. Maybe
+					you would like to learn more <Link to="/about">about me</Link>?
+				</p>
+				<h2>Work</h2>
+				<p>
+					During Summer 2026 I&apos;ll be working at Kindred Credit Union as a
+					developer.
+				</p>
+				<p>
+					You can view <Link to="/projects">my projects</Link> on my{" "}
+					<a href="https://github.com/enocla">GitHub</a>. I&apos;m also a part
+					of the <a href="https://ctp-webr.ing/enocla/previous">←</a>{" "}
+					<a className="translate-x-1" href="https://ctp-webr.ing/">
+						ctp webring
+					</a>{" "}
+					<a href="https://ctp-webr.ing/enocla/next">→</a>.
+				</p>
+				<hr />
+				<p>
+					If you&apos;re in Waterloo lets meet up. I also go to{" "}
+					<a href="https://www.socratica.info/">socratica</a> every week.
+				</p>
+				<hr />
+				<p>I&apos;m always welcome to cold emails! So please email me.</p>
+				<h6>
+					<em>Thanks for reading!</em>
+				</h6>
+			</article>
+			<Song />
+		</>
+	);
 }
