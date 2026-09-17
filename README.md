@@ -45,6 +45,21 @@ The public writing URL is `/writing/<slug>`. `/content/<slug>` remains as a comp
 
 The OG generator reads the same manifest; it has no second page/post registry. It removes stale generated PNGs before rendering and `validate:content` checks ownership in both directions.
 
+## Math in MDX
+
+Use `$$...$$` for inline LaTeX, for example `The energy is $$E = mc^2$$.`
+For a centered display equation, put the delimiters on separate lines:
+
+```md
+$$
+\frac{1}{n} \sum_{i=1}^{n} x_i
+$$
+```
+
+Math is rendered at build time with KaTeX, with locally bundled styles and fonts.
+Single dollar signs stay literal (for example, `$5`), and math inside code spans
+or fenced code blocks is not rendered. Wide display equations scroll horizontally.
+
 ## Sleep data
 
 The raw AutoSleep export is personal input and belongs at `data/sleep/raw/sleep.csv`. That directory is ignored and never served. The preprocessing command is:

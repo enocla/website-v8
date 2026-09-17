@@ -496,7 +496,7 @@ export function AcfBars() {
 					x: "lag",
 					y: "r",
 					key: "lag",
-					fill: (d) => (d.lag === "7" || d.lag === "14" ? ACCENT : MUTED),
+					fill: (d) => (["3", "7", "14"].includes(d.lag) ? ACCENT : MUTED),
 					inset: 1,
 				}),
 				ruleY([{ v: 0 }], { y: "v", stroke: INK, strokeWidth: 1 }),

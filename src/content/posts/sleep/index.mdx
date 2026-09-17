@@ -11,20 +11,30 @@ import {
 } from "../../../features/sleep/charts/SleepCharts";
 import { sleepStats } from "../../../features/sleep/data/model";
 
+# Data
+
+Tracked with Apple Watch SE2, over ~3 years.
+
+Data exported from [AutoSleep](https://autosleepapp.tantsissa.com/).
+
+
 ## Sleep duration
 
 <SleepDurationHist />
 
 - Mean {sleepStats.asleepMean.toFixed(2)} hours
-- Median {sleepStats.asleepMedian.toFixed(2)} hours
 - Skew {sleepStats.asleepSkew.toFixed(2)}
 - Kurtosis {sleepStats.asleepKurt.toFixed(2)}
 
-## Bedtimes, 2023–2026
+It's pretty normal. 
+
+The lowest was 18 mins and the highest was 18.5hrs!
+
+## Bedtimes
 
 <BedtimeLongitudinal />
 
-- Raw std dev {sleepStats.bedRawStd.toFixed(2)} hours
+In this one you can see when I was in Hong Kong vs in Canada (not adjusted for timezones).
 
 <BedtimeAdjHist />
 
@@ -37,36 +47,32 @@ import { sleepStats } from "../../../features/sleep/data/model";
 <BedtimeVsAsleep />
 
 - r = {sleepStats.regAsleep.r.toFixed(2)}
-- p = 4.3 × 10⁻²¹
 - Slope {(60 * sleepStats.regAsleep.slopeHrsPerHr).toFixed(1)} min/hour
+
+So sleeping earlier ~ more sleep
 
 ## Bedtime vs wake time
 
 <BedtimeVsWake />
 
 - r = {sleepStats.regWake.r.toFixed(2)}
-- p = 6.7 × 10⁻⁵⁹
 - Slope +{(60 * sleepStats.regWake.slopeHrsPerHr).toFixed(1)} min/hour
+
+You might expect this one to be the same as the previous one, but this also counts time in bed but awake.
+
+
 
 ## Bedtime vs REM sleep
 
 <BedtimeVsRem />
 
 - r = {sleepStats.regRem.r.toFixed(2)}
-- p = 2.8 × 10⁻¹⁵
 - Slope {(60 * sleepStats.regRem.slopeHrsPerHr).toFixed(1)} min/hour
 - Early (&lt;11:15pm) {sleepStats.remEarlyMin.toFixed(1)} min vs late (&gt;1:20am) {sleepStats.remLateMin.toFixed(1)} min
 
-## Bedtime vs time awake in bed
+You might have heard that (REM sleep is locked to circadian rhythm)[https://pubmed.ncbi.nlm.nih.gov/7302463/]. Seems to check out.
 
-<BedtimeVsOverhead />
-
-- r = {sleepStats.regOverhead.r.toFixed(2)}
-- p = 7.6 × 10⁻⁴
-- Slope {(60 * sleepStats.regOverhead.slopeHrsPerHr).toFixed(1)} min/hour
-- Mean {sleepStats.overheadMeanMin.toFixed(1)} min awake in bed
-- The tracker's time-to-fall-asleep column reads zero on 98% of nights, so sleep-onset latency and night wakings are bundled here as time in bed minus time asleep
-- 118 nights where the tracker contradicts itself (more time asleep than in bed, or more time in bed than the night was long) are excluded
+I originally thought it was deep sleep but that has zero correlation, wow!
 
 ## Weekly rhythm
 
@@ -74,7 +80,8 @@ import { sleepStats } from "../../../features/sleep/data/model";
 
 - Friday 7.50 hours, Saturday 7.39 hours
 - Mon–Thu 6.81–6.95 hours
-- ANOVA p = 2.6 × 10⁻⁴
+
+So I catch up on sleep on the weekends.
 
 <AcfBars />
 
@@ -82,4 +89,16 @@ import { sleepStats } from "../../../features/sleep/data/model";
 - Lag 7: {sleepStats.acfLag7.toFixed(2)}
 - Lag 14: {sleepStats.acfLag14.toFixed(2)}
 - Short-night threshold {sleepStats.tert1.toFixed(2)} hours
-- Third short night {(sleepStats.streakShort3 * 100).toFixed(1)}%, catch-up{" "}{(sleepStats.streakLong * 100).toFixed(1)}%
+
+I wanted to see if I'd have bursts of little sleep into more sleep to make back the sleep debt, but it doens't seem like it. 
+
+
+---
+
+
+Overall nothing surprising. I love running analyses on data, if you have any ideas for what else I could plot here please reach out.
+
+
+---
+
+This was made with [Tanstack Charts](https://tanstack.com/charts/latest). It's a good library.

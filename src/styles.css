@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
 
 @theme {
   --font-serif: "New Spirit", Georgia, serif;
@@ -189,6 +190,12 @@ h6 {
 }
 
 .prose {
+  .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 0.25rem;
+  }
+
   h1 {
     @apply text-3xl pt-5 text-text-primary ;
   }
