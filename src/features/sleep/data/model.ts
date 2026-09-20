@@ -60,12 +60,14 @@ export interface SleepData {
 	histBedRaw: HistogramBin[];
 	histBedAdj: HistogramBin[];
 	longitudinal: { i: number; day: number; bed: number; date: string }[];
+	actogram: { i: number; day: number; bed: number; wake: number; date: string }[];
 	scatterAsleep: Point[];
 	scatterWake: Point[];
 	scatterOverhead: Point[];
 	scatterDeep: Point[];
 	scatterRem: Point[];
 	weekday: { day: string; mean: number; n: number }[];
+	weekdayAsleep: { day: string; y: number }[];
 	acf: { lag: number; r: number }[];
 }
 

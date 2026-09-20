@@ -16,7 +16,6 @@
     "test": "node --test scripts/content/manifest.test.ts scripts/data/sleep/csv.test.ts scripts/data/sleep/statistics.test.ts scripts/data/sleep/schema.test.ts scripts/data/sleep/transform.test.ts",
     "generate:data": "node scripts/data/sleep/preprocess.ts",
     "prepare:data": "node scripts/prepare-data.ts",
-    "fetch:fonts": "node scripts/fetch-fonts.ts",
     "build": "pnpm generate-routes && pnpm prepare:data && pnpm typecheck && pnpm generate:og && pnpm validate:content && pnpm validate:data && vite build",
     "preview": "vite preview",
     "format": "biome format --write .",

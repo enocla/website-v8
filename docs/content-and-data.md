@@ -12,7 +12,7 @@ The history screenshots remain remote deliberately: they are archival screenshot
 
 The raw AutoSleep export is personal input and is not a web asset. It belongs at `data/sleep/raw/sleep.csv`, which is ignored. The row-level cleaned/debug CSV belongs at `data/sleep/derived/sleep-clean.csv`, also ignored. There is intentionally no copy under `public/` and no root-level CSV workflow.
 
-The only published sleep data is the aggregated chart artifact at `src/features/sleep/data/sleep.json`. It contains no row-level vitals export. Its root `schemaVersion`, source SHA-256, row count, cleaning provenance, summary statistics, and chart series are checked by `pnpm validate:data`. Regenerate it locally with `node scripts/data/sleep/preprocess.mjs` after changing the private raw input.
+The only published sleep data is the aggregated chart artifact at `src/features/sleep/data/sleep.json`. It contains no row-level vitals export. Its root `schemaVersion`, source SHA-256, row count, cleaning provenance, summary statistics, and chart series are checked by `pnpm validate:data`. Regenerate it locally with `node scripts/data/sleep/preprocess.ts` after changing the private raw input.
 
 The cleaning policy is conservative: malformed required input fails preprocessing, invalid efficiency is recomputed from sleep/in-bed duration, and implausible vitals are nulled rather than invented. Pure statistics and CSV edge cases have fixture tests under `scripts/data/sleep/`.
 
@@ -26,4 +26,4 @@ These services are enhancements rather than content prerequisites: post metadata
 
 ## Fonts
 
-`public/fonts` contains runtime browser fonts (currently New Spirit plus Maple Mono). `assets/fonts` holds retained legacy Sentient inputs; those files are no longer browser assets and are not read by the OG generator. `scripts/generate-og.mjs` reads the New Spirit and Maple Mono inputs from `public/fonts` and fails if an input font cannot be loaded.
+`public/fonts` contains the runtime browser fonts (New Spirit plus Maple Mono). `scripts/generate-og.ts` reads the New Spirit and Maple Mono inputs from `public/fonts` and fails if an input font cannot be loaded.

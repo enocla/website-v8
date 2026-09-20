@@ -6,7 +6,6 @@
 //   - src/features/sleep/data/sleep.json (compact chart series + statistics)
 //
 // Run: node scripts/data/sleep/preprocess.ts
-// The root-level scripts/preprocess-sleep.ts remains a compatibility wrapper.
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -197,6 +196,9 @@ for (const s of sessions) {
 }
 const wdOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const weekday = wdOrder.map((d) => ({ day: d, mean: mean(byWd[d]), n: byWd[d].length }));
+// Raw per-night durations grouped Mon->Sun so the client can render Tukey
+// boxplots with boxY (first-seen category order sets the band domain).
+const weekdayAsleep = wdOrder.flatMap((d) => byWd[d].map((y) => ({ day: d, y })));
 // One-way ANOVA.
 let anovaF = null, anovaP = null;
 {
@@ -312,12 +314,14 @@ const out = {
 	histBedRaw: hist(bedRaw, 0, 24, 0.5),
 	histBedAdj: hist(bedAdj, 0, 24, 0.5),
 	longitudinal: sessions.map((s, i) => ({ i, day: dayNum(s.bedDate) - dayNum(sessions[0].bedDate), bed: r3(s.bedNoonRaw), date: s.bedDate })),
+	actogram: sessions.map((s, i) => ({ i, day: dayNum(s.bedDate) - dayNum(sessions[0].bedDate), bed: r3(s.bedNoonAdj), wake: r3(s.wakeNoon), date: s.bedDate })),
 	scatterAsleep: sessions.map((s, i) => ({ i, x: r3(s.bedNoonAdj), y: r3(s.asleep) })),
 	scatterWake: sessions.map((s, i) => ({ i, x: r3(s.bedNoonAdj), y: r3(s.wakeNoon) })),
 	scatterOverhead: overheadKept.map((s) => ({ i: sessionIndex.get(s), x: r3(s.bedNoonAdj), y: r3(60 * overheadOf(s)) })),
 	scatterDeep: deepRows.map((s) => ({ i: sessionIndex.get(s), x: r3(s.bedNoonAdj), y: r3(60 * s.deep) })),
 	scatterRem: remRows.map((s) => ({ i: sessionIndex.get(s), x: r3(s.bedNoonAdj), y: r3(60 * s.rem) })),
 	weekday: weekday.map((w) => ({ day: w.day, mean: r3(w.mean), n: w.n })),
+	weekdayAsleep: weekdayAsleep.map((p) => ({ day: p.day, y: r3(p.y) })),
 	acf: acfVals.map((r, i) => ({ lag: i + 1, r: r3(r) })),
 };
 fs.mkdirSync(path.join(root, "src/features/sleep/data"), { recursive: true });

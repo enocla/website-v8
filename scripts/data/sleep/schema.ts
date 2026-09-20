@@ -14,12 +14,14 @@ const REQUIRED_ARRAYS = [
 	"histBedRaw",
 	"histBedAdj",
 	"longitudinal",
+	"actogram",
 	"scatterAsleep",
 	"scatterWake",
 	"scatterOverhead",
 	"scatterDeep",
 	"scatterRem",
 	"weekday",
+	"weekdayAsleep",
 	"acf",
 ] as const satisfies readonly (keyof SleepArtifact)[];
 
@@ -58,7 +60,9 @@ export function validateSleepData(input: unknown): SleepArtifact {
 		if (!Array.isArray(value) || value.length === 0) errors.push(`${key} must be a non-empty array`);
 	}
 	if (Array.isArray(data.longitudinal) && data.longitudinal.length !== meta.n) errors.push("longitudinal row count must equal meta.n");
+	if (Array.isArray(data.actogram) && data.actogram.length !== meta.n) errors.push("actogram row count must equal meta.n");
 	if (Array.isArray(data.scatterAsleep) && data.scatterAsleep.length !== meta.n) errors.push("scatterAsleep row count must equal meta.n");
+	if (Array.isArray(data.weekdayAsleep) && data.weekdayAsleep.length !== meta.n) errors.push("weekdayAsleep row count must equal meta.n");
 	visitNumbers(data, "data", errors);
 	if (errors.length > 0) throw new Error(`Invalid sleep data:\n- ${errors.join("\n- ")}`);
 	return input as SleepArtifact;

@@ -6,7 +6,8 @@ export {
 	BedtimeVsOverhead,
 	BedtimeVsRem,
 	BedtimeVsWake,
+	SleepActogram,
 	SleepDurationHist,
-	WeekdayBars,
+	WeekdayBox,
 } from "../features/sleep/charts/SleepCharts";
 export { sleepStats } from "../features/sleep/data/model";

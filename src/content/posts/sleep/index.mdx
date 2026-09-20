@@ -6,8 +6,9 @@ import {
 	BedtimeVsOverhead,
 	BedtimeVsRem,
 	BedtimeVsWake,
+	SleepActogram,
 	SleepDurationHist,
-	WeekdayBars,
+	WeekdayBox,
 } from "../../../features/sleep/charts/SleepCharts";
 import { sleepStats } from "../../../features/sleep/data/model";
 
@@ -17,6 +18,9 @@ Tracked with Apple Watch SE2, over ~3 years.
 
 Data exported from [AutoSleep](https://autosleepapp.tantsissa.com/).
 
+## Raster sleep actogram
+
+<SleepActogram />
 
 ## Sleep duration
 
@@ -74,9 +78,11 @@ You might have heard that [REM sleep is locked to circadian rhythm](https://pubm
 
 I originally thought it was deep sleep but that has zero correlation, wow!
 
-## Weekly rhythm
+## Days of the week
 
-<WeekdayBars />
+<WeekdayBox />
+
+Box = quartiles, line = median, black dot = mean, whiskers = 1.5× IQR (ik you're supposed to extend it til the most extreme value within this range but i cba).
 
 - Friday 7.50 hours, Saturday 7.39 hours
 - Mon–Thu 6.81–6.95 hours

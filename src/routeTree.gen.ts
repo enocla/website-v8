@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as WritingRouteImport } from './routes/writing'
-import { Route as ContentSlugRouteImport } from './routes/content/$slug'
 import { Route as WritingIndexRouteImport } from './routes/writing/index'
 import { Route as WritingSlugRouteImport } from './routes/writing/$slug'
 
@@ -37,11 +36,6 @@ const WritingRoute = WritingRouteImport.update({
   path: '/writing',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContentSlugRoute = ContentSlugRouteImport.update({
-  id: '/content/$slug',
-  path: '/content/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const WritingIndexRoute = WritingIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -58,7 +52,6 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/projects': typeof ProjectsRoute
   '/writing': typeof WritingRouteWithChildren
-  '/content/$slug': typeof ContentSlugRoute
   '/writing/$slug': typeof WritingSlugRoute
   '/writing/': typeof WritingIndexRoute
 }
@@ -66,7 +59,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/projects': typeof ProjectsRoute
-  '/content/$slug': typeof ContentSlugRoute
   '/writing/$slug': typeof WritingSlugRoute
   '/writing': typeof WritingIndexRoute
 }
@@ -76,35 +68,21 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/projects': typeof ProjectsRoute
   '/writing': typeof WritingRouteWithChildren
-  '/content/$slug': typeof ContentSlugRoute
   '/writing/$slug': typeof WritingSlugRoute
   '/writing/': typeof WritingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/about'
-    | '/projects'
-    | '/writing'
-    | '/content/$slug'
-    | '/writing/$slug'
-    | '/writing/'
+    '/' | '/about' | '/projects' | '/writing' | '/writing/$slug' | '/writing/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/about'
-    | '/projects'
-    | '/content/$slug'
-    | '/writing/$slug'
-    | '/writing'
+  to: '/' | '/about' | '/projects' | '/writing/$slug' | '/writing'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/projects'
     | '/writing'
-    | '/content/$slug'
     | '/writing/$slug'
     | '/writing/'
   fileRoutesById: FileRoutesById
@@ -114,7 +92,6 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ProjectsRoute: typeof ProjectsRoute
   WritingRoute: typeof WritingRouteWithChildren
-  ContentSlugRoute: typeof ContentSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -145,13 +122,6 @@ declare module '@tanstack/react-router' {
       path: '/writing'
       fullPath: '/writing'
       preLoaderRoute: typeof WritingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/content/$slug': {
-      id: '/content/$slug'
-      path: '/content/$slug'
-      fullPath: '/content/$slug'
-      preLoaderRoute: typeof ContentSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/writing/': {
@@ -189,7 +159,6 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ProjectsRoute: ProjectsRoute,
   WritingRoute: WritingRouteWithChildren,
-  ContentSlugRoute: ContentSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

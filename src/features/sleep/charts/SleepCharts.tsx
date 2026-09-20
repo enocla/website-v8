@@ -1,12 +1,13 @@
 import {
 	barY,
+	boxY,
 	defineChart,
 	dot,
 	linearRegressionY,
 	lineY,
 	rect,
+	ruleX,
 	ruleY,
-	text,
 } from "@tanstack/charts";
 import { Chart } from "@tanstack/charts/react";
 import { scaleBand } from "@tanstack/charts/scales/band";
@@ -128,6 +129,165 @@ function Shell({
 	);
 }
 
+const DAY0 = Date.UTC(2023, 3, 20);
+function dayOffset(iso: string): number {
+	const [y, m, d] = iso.split("-").map(Number);
+	return Math.round((Date.UTC(y, m - 1, d) - DAY0) / 86400000);
+}
+const YEAR_TICKS = ["2024-01-01", "2025-01-01", "2026-01-01"].map((d) => ({
+	v: dayOffset(d),
+	label: d.slice(0, 4),
+}));
+
+const ACTO_MAX_DAY = Math.max(...sleep.actogram.map((d) => d.day));
+
+type ActoRow = {
+	i: number;
+	day: number;
+	date: string;
+	bed: number;
+	wake: number;
+	x1: number;
+	x2: number;
+	y1: number;
+	y2: number;
+};
+
+function actoRows(): ActoRow[] {
+	return sleep.actogram.map((d) => {
+		const yc = ACTO_MAX_DAY - d.day;
+		return {
+			i: d.i,
+			day: d.day,
+			date: d.date,
+			bed: d.bed,
+			wake: d.wake,
+			x1: d.bed,
+			x2: d.wake,
+			y1: yc - 0.4,
+			y2: yc + 0.4,
+		};
+	});
+}
+
+const ACTO_YEAR_TICKS = YEAR_TICKS.map((t) => ({
+	v: ACTO_MAX_DAY - t.v,
+	label: t.label,
+}));
+
+const MIDNIGHT_RED = "#c0392b";
+const MORNING_GREEN = "#1e8449";
+
+// Longest sessions run past next-day noon (max ~32.3), so the axis extends
+// past 24 to fit them; fmtClock wraps, so 28 -> 4pm, 32 -> 8pm next day.
+const ACTO_CLOCK_DOMAIN: [number, number] = [0, 33];
+const actoClockTicks = {
+	values: [0, 4, 8, 12, 16, 20, 24, 28, 32],
+	// biome-ignore lint/suspicious/noExplicitAny: scale tick value type varies
+	format: (v: any) => fmtClock(Number(v)),
+};
+
+/** Wake label with a next-day marker past noon. */
+function fmtWake(h: number): string {
+	const base = fmtClock(h);
+	return h >= 24 ? `${base} +1d` : base;
+}
+
+function actoRangeText(point: LoosePoint): string | null {
+	const d = looseDatum(point);
+	const b = asNum(d.bed);
+	const w = asNum(d.wake);
+	if (b == null || w == null) return null;
+	return `${fmtClock(b)}–${fmtWake(w)}`;
+}
+
+function actoDurationText(point: LoosePoint): string | null {
+	const d = looseDatum(point);
+	const b = asNum(d.bed);
+	const w = asNum(d.wake);
+	if (b == null || w == null || w < b) return null;
+	return `${(w - b).toFixed(2)} h in bed`;
+}
+
+export function SleepActogram() {
+	const definition = useMemo(() => {
+		const rows = actoRows();
+		return defineChart({
+			// Rows are sub-pixel targets; snap hover to the nearest night
+			// vertically so the tooltip follows the mouse over the raster.
+			focus: "nearest-y",
+			marks: [
+				rect(rows, {
+					x1: "x1",
+					x2: "x2",
+					y1: "y1",
+					y2: "y2",
+					key: "i",
+					fill: ACCENT,
+					// Raster rows are ~1px tall; the default inset (0.75px per
+					// side) would paint every bar down to zero height.
+					inset: 0,
+				}),
+				ruleX([{ v: 12 }], {
+					x: "v",
+					stroke: MIDNIGHT_RED,
+					strokeWidth: 1.5,
+					strokeDasharray: "3 3",
+				}),
+				ruleX([{ v: 20 }], {
+					x: "v",
+					stroke: MORNING_GREEN,
+					strokeWidth: 1.5,
+					strokeDasharray: "3 3",
+				}),
+			],
+			scales: {
+				x: {
+					// Pinned clock domain, extended past next-day noon so the
+					// longest sessions fit instead of clipping at 24.
+					scale: scaleLinear().domain(ACTO_CLOCK_DOMAIN),
+					grid: true,
+					axis: { label: "Clock time (noon-to-noon)", ticks: actoClockTicks },
+				},
+				y: {
+					// y is flipped (maxDay - day) so day 0 renders at the top
+					// under the chart's standard low-bottom / high-top mapping.
+					scale: scaleLinear().domain([-1, ACTO_MAX_DAY + 1]),
+					axis: {
+						label: "Date",
+						ticks: {
+							values: ACTO_YEAR_TICKS.map((t) => t.v),
+							// biome-ignore lint/suspicious/noExplicitAny: scale tick value type varies
+							format: (v: any) =>
+								ACTO_YEAR_TICKS.find((t) => t.v === Number(v))?.label ?? "",
+						},
+					},
+				},
+			},
+			tooltip: {
+				use: tooltip,
+				className: TOOLTIP_CLASS,
+				items: [
+					{
+						id: "date",
+						label: "Night",
+						text: (p) => fmtIsoDate(looseDatum(p).date),
+					},
+					{ id: "range", label: "Sleep", text: actoRangeText },
+					{ id: "dur", label: "Duration", text: actoDurationText },
+				],
+			},
+		});
+	}, []);
+	return (
+		<Shell
+			definition={definition}
+			aspectRatio={0.64}
+			ariaLabel="Raster sleep actogram: nightly sleep bars on a noon-to-noon clock, stacked by date"
+		/>
+	);
+}
+
 export function SleepDurationHist() {
 	const definition = useMemo(
 		() =>
@@ -176,16 +336,6 @@ export function SleepDurationHist() {
 		/>
 	);
 }
-
-const DAY0 = Date.UTC(2023, 3, 20);
-function dayOffset(iso: string): number {
-	const [y, m, d] = iso.split("-").map(Number);
-	return Math.round((Date.UTC(y, m - 1, d) - DAY0) / 86400000);
-}
-const YEAR_TICKS = ["2024-01-01", "2025-01-01", "2026-01-01"].map((d) => ({
-	v: dayOffset(d),
-	label: d.slice(0, 4),
-}));
 
 export function BedtimeLongitudinal() {
 	const definition = useMemo(
@@ -413,27 +563,82 @@ export function BedtimeVsOverhead() {
 	);
 }
 
-export function WeekdayBars() {
+const weekdayMeanByDay = new Map(sleep.weekday.map((w) => [w.day, w]));
+
+function boxDayText(point: LoosePoint): string | null {
+	const d = looseDatum(point);
+	const v = d.category ?? d.day ?? point.xValue;
+	return typeof v === "string" && v ? v : null;
+}
+
+function boxMedianText(point: LoosePoint): string | null {
+	const v = asNum(looseDatum(point).median);
+	return v != null ? `${v.toFixed(2)} h` : null;
+}
+
+function boxIqrText(point: LoosePoint): string | null {
+	const d = looseDatum(point);
+	const q1 = asNum(d.q1);
+	const q3 = asNum(d.q3);
+	return q1 != null && q3 != null
+		? `${q1.toFixed(2)}–${q3.toFixed(2)} h`
+		: null;
+}
+
+function boxRangeText(point: LoosePoint): string | null {
+	const d = looseDatum(point);
+	const lo = asNum(d.whiskerLow);
+	const hi = asNum(d.whiskerHigh);
+	return lo != null && hi != null
+		? `${lo.toFixed(2)}–${hi.toFixed(2)} h`
+		: null;
+}
+
+function boxMeanText(point: LoosePoint): string | null {
+	const d = looseDatum(point);
+	if (d.kind === "outlier") return null;
+	const direct = asNum(d.mean);
+	if (direct != null) return `${direct.toFixed(2)} h`;
+	const day = boxDayText(point);
+	const mean = day != null ? weekdayMeanByDay.get(day)?.mean : undefined;
+	return mean != null ? `${mean.toFixed(2)} h` : null;
+}
+
+function boxNightsText(point: LoosePoint): string | null {
+	const n = asNum(looseDatum(point).count ?? looseDatum(point).n);
+	return n != null ? `${Math.round(n)}` : null;
+}
+
+function boxOutlierText(point: LoosePoint): string | null {
+	const d = looseDatum(point);
+	if (d.kind !== "outlier") return null;
+	const v = asNum(d.value);
+	return v != null ? `${v.toFixed(2)} h` : null;
+}
+
+export function WeekdayBox() {
 	const definition = useMemo(
 		() =>
 			defineChart({
 				marks: [
-					barY(sleep.weekday, {
+					boxY(sleep.weekdayAsleep, {
 						x: "day",
-						y: "mean",
-						key: "day",
-						fill: (d) => (d.day === "Fri" || d.day === "Sat" ? ACCENT : MUTED),
-						inset: 2,
+						y: "y",
+						fill: ACCENT,
+						fillOpacity: 0.18,
+						stroke: ACCENT,
+						strokeWidth: 1.5,
+						inset: 14,
+						r: 3,
 					}),
-					text(sleep.weekday, {
+					dot(sleep.weekday, {
 						x: "day",
 						y: "mean",
 						key: "day",
-						text: (d) => d.mean.toFixed(2),
-						dy: -8,
-						anchor: "middle",
-						fontSize: 12,
+						r: 4.5,
 						fill: INK,
+						stroke: "#fff",
+						strokeWidth: 1.5,
 					}),
 				],
 				scales: {
@@ -444,37 +649,20 @@ export function WeekdayBars() {
 					y: {
 						scale: scaleLinear,
 						grid: true,
-						axis: { label: "Mean hours asleep" },
+						axis: { label: "Hours asleep" },
 					},
 				},
 				tooltip: {
 					use: tooltip,
 					className: TOOLTIP_CLASS,
 					items: [
-						{
-							id: "day",
-							label: "Night",
-							text: (p) => {
-								const v = p.xValue ?? looseDatum(p).day;
-								return typeof v === "string" && v ? v : null;
-							},
-						},
-						{
-							id: "mean",
-							label: "Mean asleep",
-							text: (p) => {
-								const y = asNum(p.yValue);
-								return y != null ? `${y.toFixed(2)} h` : null;
-							},
-						},
-						{
-							id: "n",
-							label: "Nights",
-							text: (p) => {
-								const n = asNum(looseDatum(p).n);
-								return n != null ? `${Math.round(n)}` : null;
-							},
-						},
+						{ id: "day", label: "Night", text: boxDayText },
+						{ id: "median", label: "Median", text: boxMedianText },
+						{ id: "iqr", label: "IQR", text: boxIqrText },
+						{ id: "range", label: "Whiskers", text: boxRangeText },
+						{ id: "mean", label: "Mean", text: boxMeanText },
+						{ id: "n", label: "Nights", text: boxNightsText },
+						{ id: "outlier", label: "Outlier", text: boxOutlierText },
 					],
 				},
 			}),
@@ -483,8 +671,8 @@ export function WeekdayBars() {
 	return (
 		<Shell
 			definition={definition}
-			aspectRatio={2}
-			ariaLabel="Bar chart of mean sleep by weekday with weekend catch-up"
+			aspectRatio={4 / 3}
+			ariaLabel="Box plot of nightly sleep hours by weekday: boxes span quartiles, the line is the median, the black dot is the mean, whiskers extend to 1.5 times the interquartile range"
 		/>
 	);
 }
